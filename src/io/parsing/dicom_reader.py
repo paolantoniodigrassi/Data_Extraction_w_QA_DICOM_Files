@@ -1,11 +1,11 @@
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import pydicom
 from pydicom.errors import InvalidDicomError
 
 
-def pydicom_to_plain_python(value: Any) ->Any:
+def pydicom_to_plain_python(value: Any) -> Any:
     if value is None:
         return None
     if isinstance(value, (list, tuple)):
@@ -30,6 +30,7 @@ def read_dicom_header(path: Path, tag_names: List[str], *, stop_before_pixels: b
     record: Dict[str, Any] = {"file_path": str(path)}
     for t in tag_names:
         record[t] = safe_get(ds, t)
+
 
     missing = [t for t in tag_names if record.get(t) is None]
     return {"record": record, "missing_tags": missing, "error": None}

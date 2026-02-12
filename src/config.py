@@ -42,4 +42,5 @@ PARSER_CONFIG = {
 
 
 def all_tags() -> List[str]:
+    # returns a list with every tag for QA
     return ID_TAGS + CORE_TAGS + GEOMETRY_TAGS + OPTIONAL_DWI_TAGS

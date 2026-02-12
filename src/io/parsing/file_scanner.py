@@ -5,7 +5,7 @@ from typing import List
 def has_dicom_bytes(path: Path) -> bool:
     '''
     used for datasets that omit the .dcm extension
-    DICOM files often contain b'DICM' at byte offset 128
+    DICOM files often contain b'DICM' at byte offset 128 (DICOM "magic bytes")
     '''
     try:
         with path.open("rb") as f:
@@ -35,5 +35,5 @@ def scan_dicom_files(root: Path, ignore_ext: tuple[str, ...]) -> List[Path]:
             continue
         if is_probably_dicom(p):
             dicoms.append(p)
-            
+
     return sorted(dicoms)
