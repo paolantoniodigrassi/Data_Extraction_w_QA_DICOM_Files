@@ -20,7 +20,7 @@ def xyz_as_floats(value: Any) -> Optional[List[float]]:
     '''
     if value is None or not isinstance(value, (list, tuple)) or len(value) < 3:
         return None
-    vals = [x_to_float(value[0], x_to_float(value[1]), x_to_float(value[2]))]
+    vals = [x_to_float(value[0]), x_to_float(value[1]), x_to_float(value[2])]
     if any(v is None for v in vals):
         return None
     return [vals[0], vals[1], vals[2]]
