@@ -1,1 +1,0 @@
-# tabella metadati (CSV/Partquet), log errori/tag mancanti
