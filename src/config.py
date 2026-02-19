@@ -28,19 +28,26 @@ GEOMETRY_TAGS: List[str] = [
     "SpacingBetweenSlices"
 ]
 
-OPTIONAL_DWI_TAGS: List[str] = [
-    "DiffusionBValue",
-    "DiffusionGradientOrientation"
-]
-
 PARSER_CONFIG = {
     "stop_before_pixels": True,
     "force_read": True, # pydicom: try reading even if preamble is missing
     "ignore_extensions": (".jpg", ".jpeg", ".png", ".txt", ".csv", ".pdf", ".json")
 }
 
+ESSENTIAL_TAGS = [
+    "StudyInstanceUID",
+    "SeriesInstanceUID",
+    "SOPInstanceUID",
+    "ImagePositionPatient",
+    "ImageOrientationPatient",
+    "PixelSpacing",
+    "Rows",
+    "Columns",
+]
 
+def essential_tags() -> List[str]:
+    return ESSENTIAL_TAGS
 
 def all_tags() -> List[str]:
     # returns a list with every tag for QA
-    return ID_TAGS + CORE_TAGS + GEOMETRY_TAGS + OPTIONAL_DWI_TAGS
+    return ID_TAGS + CORE_TAGS + GEOMETRY_TAGS
