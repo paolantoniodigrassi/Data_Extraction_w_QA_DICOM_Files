@@ -12,7 +12,7 @@ from src.processing.operators import x_to_float, xyz_as_floats, six_as_floats,  
 
 def group_records_by_series(records: Iterable[Dict[str, Any]]) -> Dict[Tuple[str, str], List[Dict[str, Any]]]:
     '''
-    Group records by StudyInstanceUID, SeriesInstanceUID
+    Raggruppa i record in base a StudyInstanceUID, SeriesInstanceUID
     '''
     groups: Dict[Tuple[str, str], List[Dict[str, Any]]] = {}
 
@@ -30,7 +30,7 @@ def group_records_by_series(records: Iterable[Dict[str, Any]]) -> Dict[Tuple[str
 
 def sort_series_records(records: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], str, List[str]]:
     '''
-    Sort records inside one series
+    Riordina i record dentro una serie
     '''
     issues: List[str] = []
     if not records:
@@ -50,7 +50,7 @@ def sort_series_records(records: List[Dict[str, Any]]) -> Tuple[List[Dict[str, A
                 continue
             coords.append((dot_product(ipp, normal), r))
 
-        # Use geometric sort if there are enough IPP values
+        # Usa geometric sort se non ci sono abbastanza valori IPP
         if len(coords) >= max(2, int(0.8 * len(records))):
             coords.sort(key=lambda x: x[0])
             sorted_records = [r for _, r in coords]

@@ -132,26 +132,19 @@ def run_qc ( records: List[Dict[str, Any]], series_index: Dict[str, Any]) -> Tup
 
     
 def run_qc_entrypoint():
-    print("[qc_runner] Reading input files...", flush=True)
     records_path = Path(sys.argv[1])
     series_index_path = Path(sys.argv[2])
     
-    
     records = json.loads(records_path.read_text())
-    print(f"[qc_runner] Loaded records: {len(records)}", flush=True)
-
+    
     series_index_raw = json.loads(series_index_path.read_text())
     series_index = {
         tuple(k.split("||")): v
         for k, v in series_index_raw.items()
     }
-    print(f"[qc_runner] Loaded series_index keys: {len(series_index_raw)}", flush=True)
-
-    print("[qc_runner] Running QC...", flush=True)
+    
     flags_by_image, flags_by_series, qc_summary = run_qc(records, series_index)
-    print(f"[qc_runner] QC done. Flags: {len(flags_by_image)}")
-
-    print("[qc_runner] Writing outputs...")
+    
     with open("qc_flags_by_image.json", "w") as fp:
         json.dump(flags_by_image, fp, indent=2, default=str)
 
