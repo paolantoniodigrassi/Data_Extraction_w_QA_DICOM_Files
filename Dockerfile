@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-# Installa Java (necessario per Nextflow)
+# Installa Java (per Nextflow) e dipendenze di sistema
 RUN apt-get update && apt-get install -y \
     openjdk-21-jdk \
     curl \
@@ -12,15 +12,21 @@ RUN curl -s https://get.nextflow.io | bash && \
     mv nextflow /usr/local/bin/ && \
     chmod +x /usr/local/bin/nextflow
 
-# Imposta la working directory
+# Working directory
 WORKDIR /app
 
-# Copia e installa le dipendenze Python
+# Installa dipendenze Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copia il progetto
 COPY . .
 
-# Comando di default
-CMD ["nextflow", "run", "pipeline_docker_friendly.nf"]
+# Rende eseguibile lo script CLI
+RUN chmod +x run_pipeline.sh
+
+# Directory di default per dati e output
+RUN mkdir -p /app/data /app/output
+
+# Comando di default: script interattivo
+CMD ["bash", "run_pipeline.sh"]

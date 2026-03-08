@@ -8,7 +8,7 @@ import math
 
 def x_to_float(x: Any) -> Optional[float]:
     '''
-    Converts x to float if possible
+    Converte x a float se possibile
     '''
     try:
         if x is None:
@@ -20,7 +20,7 @@ def x_to_float(x: Any) -> Optional[float]:
 
 def xyz_as_floats(value: Any) -> Optional[List[float]]:
     '''
-    Converts [x,y,z] to floats from a list/tuple value
+    Converte [x,y,z] a float da una lista/tupla
     '''
     if value is None or not isinstance(value, (list, tuple)) or len(value) < 3:
         return None
@@ -32,7 +32,7 @@ def xyz_as_floats(value: Any) -> Optional[List[float]]:
 
 def six_as_floats(value: Any) -> Optional[List[float]]:
     '''
-    Converts ImageOrientationPatient to 6 floats
+    Converte ImageOrientationPatient a 6 floats
     '''
     if value is None or not isinstance(value, (list, tuple)) or len(value) < 6:
         return None

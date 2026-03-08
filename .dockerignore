@@ -1,7 +1,11 @@
-.venv_linux
-.venv_qa_dicom
-work
-.nextflow
+.git
+__pycache__
+*.pyc
+.env
+output/
+data/
+input_csv/
+work/
+.nextflow/
 .nextflow.log*
-data/out
-pipeline.nf
+extractions/

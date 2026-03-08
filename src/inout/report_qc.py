@@ -1,3 +1,7 @@
+'''
+Scrive tutti i report necessari a mostrare i risultati della
+batteria di controlli della pipeline di QA
+'''
 import sys
 from pathlib import Path
 from typing import Any, Dict, List

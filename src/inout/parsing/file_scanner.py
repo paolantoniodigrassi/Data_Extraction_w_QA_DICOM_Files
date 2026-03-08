@@ -24,6 +24,8 @@ def is_probably_dicom(path:Path) -> bool:
         return False
     if path.name.lower().endswith("xx.dcm"):
         return False
+    if path.name.startswith("decrypted_"):
+        return False
     if path.suffix.lower() == ".dcm":
         return True
     return has_dicom_bytes(path)
