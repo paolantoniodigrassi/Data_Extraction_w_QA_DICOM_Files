@@ -136,15 +136,15 @@ def run_qc_entrypoint():
     series_index_path = Path(sys.argv[2])
     
     records = json.loads(records_path.read_text())
-    
+
     series_index_raw = json.loads(series_index_path.read_text())
     series_index = {
         tuple(k.split("||")): v
         for k, v in series_index_raw.items()
     }
-    
+
     flags_by_image, flags_by_series, qc_summary = run_qc(records, series_index)
-    
+
     with open("qc_flags_by_image.json", "w") as fp:
         json.dump(flags_by_image, fp, indent=2, default=str)
 
