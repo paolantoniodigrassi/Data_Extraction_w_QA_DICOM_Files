@@ -1,0 +1,28 @@
+networks:
+  dcm4chee_network:
+    # Se DCM4CHEE è già avviato con un'altra compose,
+    # usa 'external: true' e il nome della rete esistente.
+    # Altrimenti commenta le righe sotto e decommenta 'driver: bridge'
+    external: true
+    name: cmnd-mlhops_datacollection_dcm4chee_network
+    # driver: bridge
+
+services:
+  pipeline:
+    build: .
+    container_name: unified_pipeline
+    networks:
+      - dcm4chee_network
+    env_file:
+      - .env
+    volumes:
+      # Monta la directory dei dati DICOM (per modalità 'local')
+      - ./data:/app/data
+      # Monta la directory di output
+      - ./output:/app/output
+      # Monta la cartella con il CSV dei pazienti
+      - ./input_csv:/app/input_csv
+      # Monta la cartella con i DICOM estratti
+      - ./extractions:/app/extractions
+    stdin_open: true
+    tty: true
