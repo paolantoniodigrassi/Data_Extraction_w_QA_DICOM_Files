@@ -100,6 +100,7 @@ if [ "$PIPELINE_MODE" == "csv" ]; then
     CSV_NAME=$(basename "$CSV_FILE" .csv)
     OUTPUT_DIR="${DEFAULT_OUTPUT_DIR}/report_${CSV_NAME}_${TIMESTAMP}"
     mkdir -p "$OUTPUT_DIR"
+    DISPLAY_PATH=$(echo "$OUTPUT_DIR" | sed 's|/app|/MLOps_DataCollection_QA|')
 
     # Riepilogo
     while true; do
@@ -108,7 +109,7 @@ if [ "$PIPELINE_MODE" == "csv" ]; then
         echo -e "  Mode:              ${GREEN}Extraction + QA${NC}"
         echo -e "  CSV File:          ${CSV_FILE}"
         echo -e "  Anonymization:     ${ANON_TYPE}"
-        echo -e "  Output:            ${OUTPUT_DIR}"
+        echo -e "  Output:            ${DISPLAY_PATH}"
         echo ""
         read -p "Confirm? [Y/N]: " CONFIRM
         if [ "$CONFIRM" == "n" ] || [ "$CONFIRM" == "N" ]; then
@@ -153,6 +154,7 @@ elif [ "$PIPELINE_MODE" == "local" ]; then
     DATA_NAME=$(basename "$DATA_DIR")
     OUTPUT_DIR="${DEFAULT_OUTPUT_DIR}/report_${DATA_NAME}_${TIMESTAMP}"
     mkdir -p "$OUTPUT_DIR"
+    DISPLAY_PATH=$(echo "$OUTPUT_DIR" | sed 's|/app|/MLOps_DataCollection_QA|')
 
     # Riepilogo
     while true; do
@@ -160,7 +162,7 @@ elif [ "$PIPELINE_MODE" == "local" ]; then
         echo -e "${BOLD}${CYAN} Summary ${NC}"
         echo -e "  Mode:          ${GREEN}QA on local files${NC}"
         echo -e "  DICOM dir:     ${DATA_DIR}"
-        echo -e "  Output:        ${OUTPUT_DIR}"
+        echo -e "  Output:        ${DISPLAY_PATH}"
         echo ""
         read -p "Confirm? [Y/N]: " CONFIRM
         if [ "$CONFIRM" == "n" ] || [ "$CONFIRM" == "N" ]; then
@@ -189,5 +191,5 @@ elif [ "$PIPELINE_MODE" == "local" ]; then
 fi
 
 echo ""
-echo -e "${BOLD}${GREEN}   Pipeline completed! Report available in: ${OUTPUT_DIR} ${NC}"
+echo -e "${BOLD}${GREEN}   Pipeline completed! Report available in: ${DISPLAY_PATH} ${NC}"
 echo ""
