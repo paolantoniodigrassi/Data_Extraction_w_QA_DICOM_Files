@@ -96,7 +96,9 @@ if [ "$PIPELINE_MODE" == "csv" ]; then
     fi
 
     # Directory di output
-    OUTPUT_DIR="${DEFAULT_OUTPUT_DIR}"
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    CSV_NAME=$(basename "$CSV_FILE" .csv)
+    OUTPUT_DIR="${DEFAULT_OUTPUT_DIR}/report_${CSV_NAME}_${TIMESTAMP}"
     mkdir -p "$OUTPUT_DIR"
 
     # Riepilogo
@@ -147,7 +149,9 @@ elif [ "$PIPELINE_MODE" == "local" ]; then
     mkdir -p "$DATA_DIR"
 
     # Directory di output
-    OUTPUT_DIR="${DEFAULT_OUTPUT_DIR}"
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    DATA_NAME=$(basename "$DATA_DIR")
+    OUTPUT_DIR="${DEFAULT_OUTPUT_DIR}/report_${DATA_NAME}_${TIMESTAMP}"
     mkdir -p "$OUTPUT_DIR"
 
     # Riepilogo
