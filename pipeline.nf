@@ -12,7 +12,7 @@ params.mode      = "local"
 params.csv_file           = ""
 params.anonymization_type = "clear"    // clear | partial | irreversible
 
-// Directory dei file DICOM (usata in modalità 'local', o riempita dall'estrazione)
+// Directory dei file DICOM (usata in modalità 'local')
 params.data_dir  = "/app/data"
 
 
