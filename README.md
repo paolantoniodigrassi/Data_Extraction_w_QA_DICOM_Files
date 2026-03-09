@@ -125,7 +125,6 @@ La pipeline produce nella directory di output una sottocartella per ogni esecuzi
 | `qc_flags_by_series.csv` | Flag QC per serie |
 | `qc_summary.csv` | Riepilogo QC |
 | `extraction_summary.txt` | Riepilogo estrazione (solo modalità CSV) |
-| `pseudonym_map.csv` | Mappa pseudonimi (solo se anonimizzazione != clear) |
 
 Inoltre verrà generata la cartella `volumes` contenente i volumi ricostruiti. 
 
@@ -143,6 +142,10 @@ PACS_BASE_URL=http://host.docker.internal:8080/dcm4chee-arc/aets/DCM4CHEE/rs
 # IP diretto del server
 PACS_BASE_URL=http://192.168.1.100:8080/dcm4chee-arc/aets/DCM4CHEE/rs
 ```
+
+## Estrazione dal server PACS
+
+Quando si sceglie la modalità `csv` la pipeline salva all'interno della cartella extractions una sottocartella `Extraction_(data)_(ora)_(modalità)` contenente i file DICOM ricavati dall'estrazione dal PACS e un file `pseudonym_map.csv` per estrazioni che non sono `clear`.
 
 ## Note
 
