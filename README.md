@@ -68,6 +68,8 @@ Mario Rossi
 Laura Bianchi
 ```
 
+e deve essere inserito nella cartella `input_csv/`.
+
 ## Struttura del Progetto
 
 ```
@@ -126,27 +128,97 @@ La pipeline produce nella directory di output una sottocartella per ogni esecuzi
 
 Inoltre verrà generata la cartella `volumes` contenente i volumi ricostruiti. 
 
-## Configurazione PACS
+## Connessione e Estrazione dal PACS
 
-L'URL del PACS si configura nel file `.env`:
+### Connessione al PACS (DCM4CHEE)
+
+La comunicazione con il server PACS avviene tramite il protocollo **DICOMweb** (REST API). L'URL base si configura nel file `.env` tramite la variabile `PACS_BASE_URL`:
 
 ```bash
 # Docker sulla stessa rete di DCM4CHEE
 PACS_BASE_URL=http://arc:8080/dcm4chee-arc/aets/DCM4CHEE/rs
 
-# Docker con host.docker.internal (default)
+# Docker con host.docker.internal
 PACS_BASE_URL=http://host.docker.internal:8080/dcm4chee-arc/aets/DCM4CHEE/rs
 
 # IP diretto del server
 PACS_BASE_URL=http://192.168.1.100:8080/dcm4chee-arc/aets/DCM4CHEE/rs
 ```
 
-## Estrazione dal server PACS
+### Endpoint utilizzati
 
-Quando si sceglie la modalità `csv` la pipeline salva all'interno della cartella extractions una sottocartella `Extraction_(data)_(ora)_(modalità)` contenente i file DICOM ricavati dall'estrazione dal PACS e un file `pseudonym_map.csv` per estrazioni che non sono `clear`.
+La struttura DICOM è organizzata ad albero:
+```
+Paziente
+  └── Studio (una sessione di esame, es. "TAC del 15 marzo")
+        └── Serie (un gruppo di immagini, es. "sequenza assiale con contrasto")
+              └── Istanza (un singolo file DICOM, una singola immagine)
+```
+
+La gerarchia delle chiamate nel codice segue esattamente questa struttura: `process_patient()` → `process_study()` → `process_series()` → `process_instance()` → `download_instance()`. Ogni funzione chiama la successiva, scendendo di un livello fino ad arrivare al singolo file DICOM da scaricare.
+
+La pipeline utilizza quattro endpoint della DICOMweb WADO-RS/QIDO-RS API.
+
+- **`/patients`** — Recupera la lista di tutti i pazienti presenti nel PACS. Viene usato per cercare il `PatientID` a partire dal nome contenuto nel CSV, confrontando il campo DICOM `PatientName` (tag `0010,0010`).
+
+  In `src/extraction/network_utils.py`, funzione `get_patient_id`:
+    ```python
+    response = requests.get(url)  # url = PACS_BASE_URL + /patients
+    ```
+    L'URL viene composto in `src/extraction/extraction_config.py`:
+    ```python
+  PACS_PATIENTS_URL = f"{PACS_BASE_URL}/patients"
+    ```
+<br>
+
+- **`/studies?includefield=all&offset=0&PatientID={id}`** — Dato un `PatientID`, restituisce tutti gli studi DICOM associati a quel paziente. Da ogni studio viene estratto lo `StudyInstanceUID` (tag `0020,000D`).
+
+  In `src/extraction/network_utils.py`, funzione `get_studies`:
+    ```python
+  url_with_patient_id = f"{studies_url}&PatientID={patient_id}"
+  response = requests.get(url_with_patient_id)
+    ```
+<br>
+
+- **`/series?includefield=all&offset=0&StudyInstanceUID={uid}`** — Dato uno `StudyInstanceUID`, restituisce tutte le serie contenute nello studio. Da ogni serie viene estratto il `SeriesInstanceUID` (tag `0020,000E`).
+
+    In `src/extraction/network_utils.py`, funzione `get_series`:
+    ```python
+    url_with_study_uid = f"{series_url}&StudyInstanceUID={study_uid}"
+    response = requests.get(url_with_study_uid)
+    ```
+<br>
+
+- **`/instances?includefield=all&offset=0&StudyInstanceUID={uid}&SeriesInstanceUID={uid}`** — Dati `StudyInstanceUID` e `SeriesInstanceUID`, restituisce tutte le istanze (immagini) della serie. Da ogni istanza viene estratto il `SOPInstanceUID` (tag `0008,0018`).
+
+    In `src/extraction/network_utils.py`, funzione `get_instances`:
+    ```python
+    url_with_uids = f"{instances_url}&StudyInstanceUID={study_uid}&SeriesInstanceUID={series_uid}"
+    response = requests.get(url_with_uids)
+    ```
+
+
+### Download delle istanze DICOM
+
+Il download di ogni singolo file DICOM avviene tramite una richiesta HTTP GET all'endpoint WADO-RS. In `src/extraction/dicom_handler.py`, funzione `download_instance`:
+    
+```python
+instance_url = (
+    f"{cfg.PACS_BASE_URL}/studies/{study_uid}"
+    f"/series/{series_uid}"
+    f"/instances/{sop_instance_uid}"
+)
+response = requests.get(instance_url)
+```
+
+La risposta è in formato `multipart/related` con content type `application/dicom`. Il file DICOM viene estratto dalla risposta multipart e salvato su disco all'interno della cartella `extractions/`, nella directory del progetto. Per ogni esecuzione che prevede l'estrazione dal PACS, viene creata una sottocartella `Extraction_(data)_(ora)_(modalità)` contenente i file DICOM e, per estrazioni non `clear`, un file `pseudonym_map.csv` con la mappatura tra nomi reali e pseudonimi.
+
+### Flusso completo di estrazione
+
+Il processo segue la gerarchia DICOM: per ogni paziente nel CSV, lo script cerca il `PatientID` sul PACS, poi scende nella struttura paziente → studi → serie → istanze, scaricando ogni istanza e applicando l'anonimizzazione richiesta (`clear`, `irreversible` o `partial`). I file vengono salvati in una struttura di cartelle che rispecchia la gerarchia DICOM: una cartella per paziente, una sottocartella per studio, una sottocartella per serie.
 
 ## Note
 
 - Se DCM4CHEE è già avviato con un docker-compose separato, modifica il campo `networks` in `docker-compose.yaml` per usare la rete esterna esistente.
 - I file DICOM locali vanno messi nella cartella `data/`.
-- I file CSV vanno messi nella cartella `input_csv/`.
+
