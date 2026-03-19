@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 output/
+!output/.gitkeep
 data/*
 !data/.gitkeep
 input_csv/*
