@@ -116,8 +116,8 @@ La pipeline produce nella directory di output una sottocartella per ogni esecuzi
 | File | Descrizione |
 |---|---|
 | `metadata.csv` | Metadati di tutti i file DICOM |
-| `series_report.csv` | Report per serie |
-| `volumes_report.csv` | Report sui volumi ricostruiti |
+| `series_report.csv` | Report ricostruzione serie |
+| `volumes_report.csv` | Report ricostruzione volume |
 | `read_errors.csv` | Errori di lettura DICOM |
 | `missing_tags_by_file.csv` | Tag mancanti per file |
 | `missing_tags_by_series.csv` | Tag mancanti per serie |
