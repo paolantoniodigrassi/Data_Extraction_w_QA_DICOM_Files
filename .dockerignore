@@ -9,3 +9,6 @@ work/
 .nextflow/
 .nextflow.log*
 extractions/
+.venv_linux/
+.venv_qa_dicom/
+.venv*/
