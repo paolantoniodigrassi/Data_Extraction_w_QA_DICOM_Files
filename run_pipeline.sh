@@ -61,6 +61,47 @@ if [ "$PIPELINE_MODE" == "csv" ]; then
     CSV_FILE=$(find "${SCRIPT_DIR}/input_csv" -maxdepth 1 -name "*.csv")
     echo -e "  CSV file found: ${GREEN}$(basename "$CSV_FILE")${NC}"
 
+    awk -F',' '
+    function trim(s) {
+        gsub(/\r/, "", s)
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", s)
+        return s
+    }
+
+    NR == 1 {
+        if (trim($1) != "PatientName") {
+            print "[ERROR] First column in first row must be \"PatientName\"."
+            has_error = 1
+            exit 1
+        }
+    }
+
+    NR == 2 {
+        if (trim($1) == "") {
+            print "[ERROR] Second row: first column must not be empty."
+            has_error = 1
+            exit 1
+        }
+    }
+
+    {
+        for (i = 2; i <= NF; i++) {
+            if (trim($i) != "") {
+                print "[ERROR] Only the first column may contain values in the entire CSV."
+                has_error = 1
+                exit 1
+            }
+        }
+    }
+
+    END {
+        if (!has_error && NR < 2) {
+            print "[ERROR] CSV must contain at least one patient."
+            exit 1
+        }
+    }
+    ' "$CSV_FILE"
+
     # Tipo di anonimizzazione
     while true; do
         echo ""
