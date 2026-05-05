@@ -198,6 +198,7 @@ process write_missing_tags_csv {
 
     input:
     path records
+    path series_index
 
     output:
     path 'missing_tags_by_file.csv'
@@ -205,7 +206,7 @@ process write_missing_tags_csv {
 
     script:
     """
-    $params.python $params.root_dir/src/inout/report.py missing $records
+    $params.python $params.root_dir/src/inout/report.py missing $records $series_index
     """
 }
 
@@ -280,10 +281,10 @@ workflow {
     // Report in parallelo dopo read_dicom_headers
     write_metadata_csv(read_dicom_headers.out[0])
     write_read_errors_csv(read_dicom_headers.out[1])
-    write_missing_tags_csv(read_dicom_headers.out[0])
 
     // Report dopo group_and_sort_series
     write_series_report_csv(group_and_sort_series.out)
+    write_missing_tags_csv(read_dicom_headers.out[0], group_and_sort_series.out)
 
     // Report dopo build_volumes
     write_volumes_report_csv(build_volumes.out[0])

@@ -561,6 +561,9 @@ def main():
     with open(summary_path, 'w') as f:
         f.write(f"found={len(result['found_patients'])}\n")
         f.write(f"not_found={len(result['not_found_patients'])}\n")
+        if result['not_found_patients']:
+            for name in result['not_found_patients']:
+                f.write(f"not_found_name={name}\n")
         f.write(f"output_dir={result['dicom_save_path']}\n")
         if result['pseudonym_map_path']:
             f.write(f"pseudonym_map={result['pseudonym_map_path']}\n")

@@ -189,6 +189,11 @@ elif [ "$PIPELINE_MODE" == "local" ]; then
     # Directory DICOM
     DATA_DIR="${DEFAULT_DATA_DIR}"
     mkdir -p "$DATA_DIR"
+    FILE_COUNT=$(find "$DATA_DIR" -type f ! -name '.gitkeep' | head -1 | wc -l)
+    if [ "$FILE_COUNT" -eq 0 ]; then
+        echo -e "${RED}[ERROR] The data directory is empty. Add DICOM files before running the pipeline.${NC}"
+        exit 1
+    fi
 
     # Directory di output
     TIMESTAMP=$(date +"%Y%m%d_%H%M%S")

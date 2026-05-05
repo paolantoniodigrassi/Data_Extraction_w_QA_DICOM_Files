@@ -68,7 +68,7 @@ def is_missing(v: Any) -> bool:
     return False
 
 
-def write_missing_tags_tables(out_root: Path, records: List[Dict[str, Any]], required_tags: Sequence[str], by_file_name: str = "missing_tags_by_file.csv",
+def write_missing_tags_tables(out_root: Path, records: List[Dict[str, Any]], required_tags: Sequence[str], series_index: Optional[Dict] = None, by_file_name: str = "missing_tags_by_file.csv",
                               by_series_name: str = "missing_tags_by_series.csv", verbose: bool = True) -> Tuple[Path, Path]:
     
     out_root.mkdir(parents=True, exist_ok=True)
@@ -125,32 +125,75 @@ def write_missing_tags_tables(out_root: Path, records: List[Dict[str, Any]], req
 
     df_missing.to_csv(by_file_path, index=False)
 
-    # Summary per series/tag
-    if not df_missing.empty:
-        df_missing_series = (
-            df_missing.dropna(subset=["StudyInstanceUID", "SeriesInstanceUID"])
-            .groupby(["StudyInstanceUID", "SeriesInstanceUID", "tag"], as_index=False)
-            .size()
-            .rename(columns={"size": "missing_count"})
-        )
+    # Report per serie (usa series_index se disponibile)
+    if series_index is not None:
+        # Raggruppa usando series_index che gestisce già UID anonimizzati
+        series_missing_rows: List[Dict[str, Any]] = []
 
-        # df_missing già contiene n_instances (per merge sopra),
-        # qui serve per serie/tag; si puo prendere dal df_counts
-        df_missing_series = df_missing_series.merge(
-            df_counts, on=["StudyInstanceUID", "SeriesInstanceUID"], how="left"
-        )
+        for key, info in series_index.items():
+            if isinstance(key, str) and "||" in key:
+                group_id = key
+            else:
+                group_id = key[0] if isinstance(key, tuple) else str(key)
+
+            sorted_recs = info.get("records_sorted") or []
+            n_instances = len(sorted_recs)
+
+            skip_tags_singleton = {"ImagePositionPatient", "ImageOrientationPatient"}
+
+            # Conta tag mancanti per questa serie
+            tag_counts: Dict[str, int] = {}
+            for r in sorted_recs:
+                for tag in required_tags:
+                    if n_instances == 1 and tag in skip_tags_singleton:
+                        continue
+                    if is_missing(r.get(tag)):
+                        tag_counts[tag] = tag_counts.get(tag, 0) + 1
+
+            for tag, count in tag_counts.items():
+                series_missing_rows.append({
+                    "series_group": group_id,
+                    "tag": tag,
+                    "missing_count": count,
+                    "n_instances": n_instances,
+                })
+
+        if series_missing_rows:
+            df_missing_series = pd.DataFrame(series_missing_rows)
+        else:
+            df_missing_series = pd.DataFrame(
+                columns=["series_group", "tag", "missing_count", "n_instances"]
+            )
 
         df_missing_series.to_csv(by_series_path, index=False)
+    
     else:
-        pd.DataFrame(
-            columns=[
-                "StudyInstanceUID",
-                "SeriesInstanceUID",
-                "tag",
-                "missing_count",
-                "n_instances"
-            ]
-        ).to_csv(by_series_path, index=False)
+    # Fallback: Summary per series/tag con UID
+        if not df_missing.empty:
+            df_missing_series = (
+                df_missing.dropna(subset=["StudyInstanceUID", "SeriesInstanceUID"])
+                .groupby(["StudyInstanceUID", "SeriesInstanceUID", "tag"], as_index=False)
+                .size()
+                .rename(columns={"size": "missing_count"})
+            )
+
+            # df_missing già contiene n_instances (per merge sopra),
+            # qui serve per serie/tag; si puo prendere dal df_counts
+            df_missing_series = df_missing_series.merge(
+                df_counts, on=["StudyInstanceUID", "SeriesInstanceUID"], how="left"
+            )
+
+            df_missing_series.to_csv(by_series_path, index=False)
+        else:
+            pd.DataFrame(
+                columns=[
+                    "StudyInstanceUID",
+                    "SeriesInstanceUID",
+                    "tag",
+                    "missing_count",
+                    "n_instances"
+                ]
+            ).to_csv(by_series_path, index=False)
 
 
     if verbose:
@@ -212,7 +255,16 @@ def write_volumes_report_entrypoint():
 def write_missing_tags_entrypoint():
     records = json.loads(Path(sys.argv[1]).read_text())
     required_tags = cfg.essential_tags()
-    write_missing_tags_tables(Path("."), records, required_tags)
+
+    series_index = None
+    if len(sys.argv) > 2:
+        series_index_raw = json.loads(Path(sys.argv[2]).read_text())
+        series_index = {
+            tuple(k.split("||")) if "||" in k else k: v
+            for k, v in series_index_raw.items()
+        }
+
+    write_missing_tags_tables(Path("."), records, required_tags, series_index=series_index)
 
 
 if __name__ == "__main__":
